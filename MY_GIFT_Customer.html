@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY GIFT</title>
+<style>
+:root{--bg:#f5f6fb;--card:#fff;--ink:#202338;--muted:#73788e;--accent:#6c4cff;--line:#e9eaf2}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#6c4cff,#a15cff);color:white;padding:24px 18px 30px;border-radius:0 0 24px 24px}
+header h1{margin:0;font-size:25px}header p{margin:6px 0 0;opacity:.9;font-size:14px}
+main{max-width:760px;margin:auto;padding:16px}
+.panel,.product,.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 4px 18px #20233808}
+.auth{max-width:420px;margin:22px auto}.auth h2{margin-top:0}
+input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;margin:7px 0 12px;font:inherit}
+button{border:0;background:var(--accent);color:white;padding:11px 15px;border-radius:10px;font-weight:650;cursor:pointer}
+button.secondary{background:#eeeaff;color:#4b35c9}button:disabled{opacity:.5;cursor:not-allowed}
+nav{display:flex;gap:8px;overflow:auto;margin:14px 0}nav button{white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.product .emoji{font-size:44px;background:#f2efff;border-radius:12px;text-align:center;padding:12px}
+.product h3{margin:9px 0 3px;font-size:16px}.muted{color:var(--muted);font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.stat strong{font-size:23px;display:block;margin-top:5px}
+.hidden{display:none}.notice{background:#fff7df;border:1px solid #f3df9f;padding:12px;border-radius:12px;font-size:13px;margin:12px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+</style>
+</head>
+<body>
+<header><h1>🎁 MY GIFT</h1><p>Your little store for gifts, rewards and referrals</p></header>
+<main>
+<section id="auth" class="panel auth">
+<h2>Welcome</h2><p class="muted">Create a demo account or sign in.</p>
+<label>Your name</label><input id="name" placeholder="Enter your name">
+<label>Email or phone</label><input id="identity" placeholder="Email or phone">
+<label>Password</label><input id="password" type="password" placeholder="At least 4 characters">
+<button onclick="login()">Create account / Login</button>
+<p id="authMsg" class="muted"></p>
+</section>
+<section id="app" class="hidden">
+<div class="row">
+<div><h2 id="welcome" style="margin:4px 0">Hello!</h2><div class="muted">Your account dashboard</div></div>
+<button class="secondary" onclick="logout()">Log out</button>
+</div>
+<div class="grid" style="margin:14px 0">
+<div class="stat"><span class="muted">Demo wallet balance</span><strong id="balance">₹0</strong></div>
+<div class="stat"><span class="muted">Orders placed</span><strong id="orders">0</strong></div>
+</div>
+<nav>
+<button onclick="showTab('store')">Gift Store</button><button class="secondary" onclick="showTab('wallet')">Wallet</button><button class="secondary" onclick="showTab('refer')">Refer & Earn</button><button class="secondary" onclick="showTab('ordersTab')">My Orders</button>
+</nav>
+<div id="store" class="tab">
+<div class="row"><h2>Gift Store</h2><span class="muted">Demo products</span></div>
+<div id="products" class="grid"></div>
+</div>
+<div id="wallet" class="tab hidden">
+<div class="panel"><h2>Wallet</h2><p class="muted">Available demo balance</p><h1 id="walletBalance">₹0</h1><p class="muted">This is sample in-app credit only. No real money or withdrawals.</p></div>
+</div>
+<div id="refer" class="tab hidden">
+<div class="panel"><h2>Refer & Earn</h2><p>Share your demo referral code with friends.</p><div class="row"><strong id="refCode">GIFT-0000</strong><button onclick="copyCode()">Copy code</button></div><p class="muted">Demo only: referral rewards are not connected to real payments.</p></div>
+</div>
+<div id="ordersTab" class="tab hidden"><h2>My Orders</h2><div id="orderList" class="panel muted">No orders yet.</div></div>
+<div class="notice">Prototype only: account data is saved in this browser. Payments, real OTP login, delivery, referral tracking and secure server/database are not connected.</div>
+</section>
+</main>
+<footer>MY GIFT • Starter prototype</footer>
+<script>
+const items=[['T-Shirt','👕',499],['Shoes','👟',1299],['Watch','⌚',899],['Gift Box','🎁',599],['Headphones','🎧',999],['Backpack','🎒',799]];
+let user=null, balance=0, orders=[];
+function login(){
+ const n=document.getElementById('name').value.trim(), id=document.getElementById('identity').value.trim(), p=document.getElementById('password').value;
+ if(!n||!id||p.length<4){document.getElementById('authMsg').textContent='Enter your name, email/phone and a password of at least 4 characters.';return;}
+ user={name:n,id}; localStorage.setItem('giftDemoUser',JSON.stringify(user)); start();
+}
+function start(){
+ document.getElementById('auth').classList.add('hidden');document.getElementById('app').classList.remove('hidden');
+ document.getElementById('welcome').textContent='Hello, '+user.name+'!';document.getElementById('refCode').textContent='GIFT-'+user.id.replace(/\W/g,'').slice(-4).toUpperCase().padStart(4,'0');
+ renderProducts();update();
+}
+function logout(){localStorage.removeItem('giftDemoUser');user=null;document.getElementById('app').classList.add('hidden');document.getElementById('auth').classList.remove('hidden');}
+function renderProducts(){document.getElementById('products').innerHTML=items.map((x,i)=>`<div class="product"><div class="emoji">${x[1]}</div><h3>${x[0]}</h3><div class="muted">₹${x[2]}</div><button style="width:100%;margin-top:10px" onclick="buy(${i})">Order now</button></div>`).join('');}
+function buy(i){const x=items[i];if(!confirm(`Place demo order for ${x[0]} — ₹${x[2]}?`))return;orders.unshift({name:x[0],price:x[2],date:new Date().toLocaleString()});update();alert('Demo order placed! No payment was taken.');}
+function update(){document.getElementById('balance').textContent='₹'+balance;document.getElementById('walletBalance').textContent='₹'+balance;document.getElementById('orders').textContent=orders.length;document.getElementById('orderList').innerHTML=orders.length?orders.map(o=>`<p>🎁 <b>${o.name}</b> — ₹${o.price}<br><span class="muted">${o.date}</span></p>`).join(''):'No orders yet.';}
+function showTab(id){document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');}
+function copyCode(){navigator.clipboard?.writeText(document.getElementById('refCode').textContent).then(()=>alert('Referral code copied!')).catch(()=>alert(document.getElementById('refCode').textContent));}
+try{const saved=JSON.parse(localStorage.getItem('giftDemoUser'));if(saved){user=saved;start();}}catch(e){}
+</script>
+</body></html>
