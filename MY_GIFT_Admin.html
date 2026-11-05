@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MY GIFT – Demo</title>
+<style>
+:root{--bg:#f5f6fb;--card:#fff;--ink:#182033;--muted:#667085;--accent:#6c4cf1;--line:#e7e9f1}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(120deg,#6c4cf1,#a34cf1);color:white;padding:22px 16px}
+header h1{margin:0;font-size:25px}header p{margin:7px 0 0;opacity:.9}
+main{max-width:900px;margin:18px auto;padding:0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+button,.btn{border:0;border-radius:10px;padding:11px 14px;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+button.secondary{background:#ece9ff;color:#4b35b5}button.danger{background:#d92d20}
+.panel,.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:16px;margin-bottom:14px;box-shadow:0 3px 14px #1720440a}
+h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:8px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 5px}
+input,textarea,select{width:100%;padding:11px;border:1px solid #d8dbea;border-radius:9px;font:inherit;background:white}
+.product{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.product img{width:100%;height:130px;object-fit:cover;border-radius:9px;background:#f0eff8}
+.price{font-weight:800;color:#4b35b5;font-size:18px}
+.small{font-size:12px;color:var(--muted);line-height:1.5}.hidden{display:none!important}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}
+.notice{background:#fff8e6;border:1px solid #ffe2a8;padding:12px;border-radius:10px;font-size:13px;line-height:1.5}
+footer{text-align:center;color:var(--muted);padding:20px;font-size:12px}
+</style>
+</head>
+<body>
+<header><h1>🎁 MY GIFT</h1><p>Gift store • Demo preview</p></header>
+<main>
+  <div class="tabs">
+    <button onclick="show('store')">Gift Store</button>
+    <button class="secondary" onclick="show('login')">Admin Login</button>
+    <button class="secondary" onclick="show('admin')">Admin Panel</button>
+  </div>
+  <section id="store" class="panel">
+    <h2>Gift Store</h2><div id="products" class="grid"></div>
+    <div class="notice" style="margin-top:14px">Demo checkout only. A real order, stock system and payment verification need a secure server/backend.</div>
+  </section>
+  <section id="login" class="panel hidden">
+    <h2>Admin Login</h2>
+    <p class="small">Demo credentials: <b>admin</b> / <b>gift123</b>. Change these before any real deployment. This demo login is not secure.</p>
+    <label>Admin ID</label><input id="adminId" autocomplete="username" placeholder="admin">
+    <label>Password</label><input id="adminPass" type="password" autocomplete="current-password" placeholder="Password">
+    <p><button onclick="login()">Login</button></p><div id="loginMsg" class="small"></div>
+  </section>
+  <section id="admin" class="hidden">
+    <div class="panel">
+      <h2>Admin Panel</h2><p class="small">Changes are saved in this browser on this device only.</p>
+      <div class="grid">
+        <div><h3>Add / Edit Gift</h3><input id="pName" placeholder="Gift name">
+          <label>Price (₹)</label><input id="pPrice" type="number" min="0" placeholder="Price">
+          <label>Photo URL (optional)</label><input id="pImage" placeholder="https://...">
+          <label>Or choose a photo</label><input id="pFile" type="file" accept="image/*">
+          <p><button onclick="saveProduct()">Save Gift</button> <button class="secondary" onclick="clearForm()">Clear</button></p>
+          <div id="productMsg" class="small"></div>
+        </div>
+        <div><h3>Refer & Earn Conditions</h3>
+          <label>Successful referrals needed</label><input id="refCount" type="number" min="1">
+          <label>Reward amount (₹)</label><input id="refReward" type="number" min="0">
+          <label>New user bonus (₹)</label><input id="newBonus" type="number" min="0">
+          <p><button onclick="saveSettings()">Save Conditions</button></p>
+          <h3>UPI Payment Details</h3><label>UPI ID</label><input id="upi" placeholder="yourname@upi">
+          <label>Payee name</label><input id="payee" placeholder="Your name">
+          <p><button onclick="saveSettings()">Save Payment Details</button></p>
+        </div>
+      </div>
+    </div>
+    <div class="panel"><h2>Gift List</h2><div id="adminProducts"></div></div>
+    <div class="panel"><h2>Orders</h2><div id="orders" class="small">No demo orders yet.</div></div>
+    <button class="danger" onclick="logout()">Logout</button>
+  </section>
+</main>
+<footer>MY GIFT demo • Not a live shopping app or installable APK</footer>
+<script>
+const defaults={products:[{name:"T-shirt",price:499,image:""}],refCount:5,refReward:100,newBonus:20,upi:"",payee:"",orders:[]};
+let data=JSON.parse(localStorage.getItem("mygift_demo")||"null")||defaults;
+let editing=-1, logged=false, chosenImage="";
+function persist(){localStorage.setItem("mygift_demo",JSON.stringify(data));render()}
+function show(id){["store","login","admin"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));if(id==="admin"&&!logged){show("login");document.getElementById("loginMsg").textContent="Please log in first.";return}if(id==="admin")loadSettings()}
+function login(){if(document.getElementById("adminId").value==="admin"&&document.getElementById("adminPass").value==="gift123"){logged=true;show("admin")}else document.getElementById("loginMsg").textContent="Incorrect demo login."}
+function logout(){logged=false;show("store")}
+function saveProduct(){let name=document.getElementById("pName").value.trim(),price=Number(document.getElementById("pPrice").value),image=chosenImage||document.getElementById("pImage").value.trim();if(!name||!Number.isFinite(price)||price<0){document.getElementById("productMsg").textContent="Enter a gift name and valid price.";return}let p={name,price,image};if(editing>=0)data.products[editing]=p;else data.products.push(p);clearForm();persist();document.getElementById("productMsg").textContent="Gift saved."}
+function clearForm(){editing=-1;chosenImage="";["pName","pPrice","pImage","pFile"].forEach(id=>document.getElementById(id).value="")}
+document.getElementById("pFile").addEventListener("change",e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{chosenImage=r.result};r.readAsDataURL(f)});
+function editProduct(i){let p=data.products[i];editing=i;document.getElementById("pName").value=p.name;document.getElementById("pPrice").value=p.price;document.getElementById("pImage").value=p.image.startsWith("data:")?"":p.image;chosenImage=p.image.startsWith("data:")?p.image:"";window.scrollTo(0,0)}
+function deleteProduct(i){if(confirm("Delete this gift?")){data.products.splice(i,1);persist()}}
+function buy(i){let p=data.products[i];let order={name:p.name,price:p.price,date:new Date().toLocaleString()};data.orders.unshift(order);persist();alert("Demo order saved. This is not a real purchase or payment.");}
+function saveSettings(){data.refCount=Number(document.getElementById("refCount").value);data.refReward=Number(document.getElementById("refReward").value);data.newBonus=Number(document.getElementById("newBonus").value);data.upi=document.getElementById("upi").value.trim();data.payee=document.getElementById("payee").value.trim();persist();alert("Settings saved on this device.")}
+function loadSettings(){document.getElementById("refCount").value=data.refCount;document.getElementById("refReward").value=data.refReward;document.getElementById("newBonus").value=data.newBonus;document.getElementById("upi").value=data.upi;document.getElementById("payee").value=data.payee}
+function render(){document.getElementById("products").innerHTML=data.products.map((p,i)=>`<div class="product">${p.image?`<img src="${p.image}" alt="">`:`<div style="height:130px;display:grid;place-items:center;background:#f0eff8;border-radius:9px;font-size:45px">🎁</div>`}<h3>${esc(p.name)}</h3><div class="price">₹${p.price}</div><p><button onclick="buy(${i})">Demo Order</button></p></div>`).join("")||"<p>No gifts added yet.</p>";document.getElementById("adminProducts").innerHTML=data.products.map((p,i)=>`<p>${esc(p.name)} — ₹${p.price} <button class="secondary" onclick="editProduct(${i})">Edit</button> <button class="danger" onclick="deleteProduct(${i})">Delete</button></p>`).join("")||"No gifts.";document.getElementById("orders").innerHTML=data.orders.map(o=>`<p>${esc(o.name)} — ₹${o.price} <span class="small">(${esc(o.date)})</span></p>`).join("")||"No demo orders yet."}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+render();
+</script>
+</body></html>
